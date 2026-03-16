@@ -52,6 +52,13 @@ npm run test:all  # Both
 
 Push to `main` deploys to GitHub Pages via `.github/workflows/deploy.yml`. The deploy workflow generates `config.js` from `config.js`, replacing the Supabase placeholders with repo secrets. `APP_TITLE` and `APP_CONTAINER` are set in `config.js` (by `install.sh` or manually).
 
+### Enable GitHub Pages
+
+1. Go to your repo → Settings → Pages
+2. Under **Source**, select **GitHub Actions**
+
+Or via CLI: `gh api repos/<owner>/<repo>/pages -X POST -f build_type=workflow`
+
 ### Set up repo secrets
 
 1. Go to your repo on GitHub → Settings → Secrets and variables → Actions
@@ -65,6 +72,8 @@ Or via CLI:
 gh secret set SUPABASE_URL --body "https://xyz.supabase.co"
 gh secret set SUPABASE_PUBLISHABLE_KEY --body "eyJ..."
 ```
+
+Your app will be live at `https://<username>.github.io/<repo-name>/`. You can also find the URL in the repo's Settings → Pages, or in the "Environments" section on the repo sidebar.
 
 ## What's Replaceable
 

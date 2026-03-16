@@ -43,19 +43,16 @@ jobs:
           MSG=$(git log -1 --pretty=%s)
           echo "var APP_VERSION = '${TIMESTAMP} ${SHA} ${MSG}';" > shared/version.js
 
+      - name: Stage deploy files
+        run: |
+          mkdir _site
+          cp -r shared _site/
+          cp index.html app.js app.css config.js _site/
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
-          exclude: |
-            .github/**
-            sql/**
-            tests/**
-            node_modules/**
-            package.json
-            package-lock.json
-            jest.config.js
-            playwright.config.js
+          path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment
