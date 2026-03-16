@@ -30,6 +30,7 @@
                 SUPABASE_PUBLISHABLE_KEY: null,
                 APP_TITLE: 'Listlet',
                 APP_CONTAINER: 'default',
+                DB_TABLE: 'listlet_sample',
                 DEFAULT_LIST_NAME: 'demo'
             };
             console.log('[Config] Localhost with no config.local.js — using mock mode (localStorage)');

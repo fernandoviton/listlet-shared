@@ -35,12 +35,16 @@ cp "$SCRIPT_DIR/jest.config.js" "$TARGET/"
 cp "$SCRIPT_DIR/playwright.config.js" "$TARGET/"
 
 # Replace defaults in config.js
-sed "s|APP_CONTAINER: 'listlet'|APP_CONTAINER: '$APP_NAME'|; s|APP_TITLE: 'Listlet'|APP_TITLE: '$APP_TITLE'|" "$TARGET/config.js" > "$TARGET/config.js.tmp"
+sed "s|APP_CONTAINER: 'listlet'|APP_CONTAINER: '$APP_NAME'|; s|APP_TITLE: 'Listlet'|APP_TITLE: '$APP_TITLE'|; s|DB_TABLE: 'listlet_sample'|DB_TABLE: '${APP_NAME}'|" "$TARGET/config.js" > "$TARGET/config.js.tmp"
 mv "$TARGET/config.js.tmp" "$TARGET/config.js"
 
 # Replace placeholders in CLAUDE.md
 sed "s|APP_CONTAINER: 'listlet'|APP_CONTAINER: '$APP_NAME'|; s|APP_TITLE: 'Listlet'|APP_TITLE: '$APP_TITLE'|; s|^# Listlet|# $APP_TITLE|" "$TARGET/CLAUDE.md" > "$TARGET/CLAUDE.md.tmp"
 mv "$TARGET/CLAUDE.md.tmp" "$TARGET/CLAUDE.md"
+
+# Replace table name in setup.sql
+sed "s|listlet_sample|${APP_NAME}|g" "$TARGET/sql/setup.sql" > "$TARGET/sql/setup.sql.tmp"
+mv "$TARGET/sql/setup.sql.tmp" "$TARGET/sql/setup.sql"
 
 # Copy .gitignore
 cp "$SCRIPT_DIR/.gitignore" "$TARGET/"

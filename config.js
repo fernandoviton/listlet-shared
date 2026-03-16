@@ -4,5 +4,6 @@ var CONFIG = {
     SUPABASE_PUBLISHABLE_KEY: '',
     APP_TITLE: 'Listlet',
     APP_CONTAINER: 'listlet',
+    DB_TABLE: 'listlet_sample',
     DEFAULT_LIST_NAME: 'demo'
 };

@@ -24,11 +24,11 @@ var Sync = (function() {
 
         try {
             realtimeChannel = window.supabaseClient
-                .channel('lists-changes')
+                .channel(CONFIG.DB_TABLE + '-changes')
                 .on('postgres_changes', {
                     event: '*',
                     schema: 'public',
-                    table: 'lists',
+                    table: CONFIG.DB_TABLE,
                     filter: 'container=eq.' + api.containerName + ',name=eq.' + api.listName
                 }, function() {
                     refreshFromServer();

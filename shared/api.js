@@ -25,7 +25,7 @@ function createApi(listName, containerName) {
             }
 
             var result = await window.supabaseClient
-                .from('lists')
+                .from(CONFIG.DB_TABLE)
                 .select('data')
                 .eq('container', containerName)
                 .eq('name', listName)
@@ -35,7 +35,7 @@ function createApi(listName, containerName) {
                 if (result.error.code === 'PGRST116') {
                     // Row not found — create it with default
                     var insertResult = await window.supabaseClient
-                        .from('lists')
+                        .from(CONFIG.DB_TABLE)
                         .upsert({ container: containerName, name: listName, data: mockDefault })
                         .select('data')
                         .single();
@@ -63,7 +63,7 @@ function createApi(listName, containerName) {
 
             // Fetch current
             var fetchResult = await window.supabaseClient
-                .from('lists')
+                .from(CONFIG.DB_TABLE)
                 .select('data')
                 .eq('container', containerName)
                 .eq('name', listName)
@@ -74,7 +74,7 @@ function createApi(listName, containerName) {
 
             // Upsert back
             var saveResult = await window.supabaseClient
-                .from('lists')
+                .from(CONFIG.DB_TABLE)
                 .upsert({ container: containerName, name: listName, data: data })
                 .select('data')
                 .single();
@@ -108,7 +108,7 @@ createApi.getAllLists = async function(containerName) {
     }
 
     var result = await window.supabaseClient
-        .from('lists')
+        .from(CONFIG.DB_TABLE)
         .select('name, data, updated_at')
         .eq('container', containerName)
         .order('updated_at', { ascending: false });
