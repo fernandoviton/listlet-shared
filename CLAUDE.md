@@ -30,7 +30,7 @@ A collaborative web app built on the listlet-shared starter kit.
 
 ## Config Keys
 
-- `SUPABASE_URL` / `SUPABASE_KEY` — Supabase project credentials (null = mock mode)
+- `SUPABASE_URL` / `SUPABASE_PUBLISHABLE_KEY` — Supabase project credentials (null = mock mode)
 - `APP_TITLE` — Displayed in header and login page (`__APP_TITLE__`)
 - `APP_CONTAINER` — Identifies this app in the `lists` table (`__APP_CONTAINER__`)
 - `DEFAULT_LIST_NAME` — Fallback when no `?list=` param

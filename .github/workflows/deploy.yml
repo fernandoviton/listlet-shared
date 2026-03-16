@@ -23,6 +23,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Generate config.js from secrets
+        run: |
+          cat > config.js << EOF
+          var CONFIG = {
+              SUPABASE_URL: '${{ secrets.SUPABASE_URL }}',
+              SUPABASE_PUBLISHABLE_KEY: '${{ secrets.SUPABASE_PUBLISHABLE_KEY }}',
+              APP_TITLE: '${{ vars.APP_TITLE || 'Listlet' }}',
+              APP_CONTAINER: '${{ vars.APP_CONTAINER || 'default' }}',
+              DEFAULT_LIST_NAME: 'demo'
+          };
+          EOF
+
       - name: Generate version.js
         run: |
           TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")

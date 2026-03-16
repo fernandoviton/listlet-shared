@@ -1,7 +1,7 @@
 // Creates window.supabaseClient from CONFIG
 
 (function() {
-    if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_KEY) {
+    if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_PUBLISHABLE_KEY) {
         window.supabaseClient = null;
         console.log('[Supabase] Mock mode — no client created');
         return;
@@ -13,6 +13,6 @@
         return;
     }
 
-    window.supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+    window.supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_PUBLISHABLE_KEY);
     console.log('[Supabase] Client created');
 })();

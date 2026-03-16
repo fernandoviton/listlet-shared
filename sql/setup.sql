@@ -1,7 +1,7 @@
 -- Listlet shared database setup
 -- Run this in Supabase SQL Editor
 
-create table if not exists lists (
+create table if not exists listlet_sample (
     id uuid default gen_random_uuid() primary key,
     container text not null,
     name text not null,
@@ -20,29 +20,29 @@ begin
 end;
 $$ language plpgsql;
 
-drop trigger if exists lists_updated_at on lists;
-create trigger lists_updated_at
-    before update on lists
+drop trigger if exists listlet_sample_updated_at on listlet_sample;
+create trigger listlet_sample_updated_at
+    before update on listlet_sample
     for each row
     execute function update_updated_at();
 
 -- Row Level Security
-alter table lists enable row level security;
+alter table listlet_sample enable row level security;
 
 create policy "Authenticated users can read all lists"
-    on lists for select
+    on listlet_sample for select
     to authenticated
     using (true);
 
 create policy "Authenticated users can insert lists"
-    on lists for insert
+    on listlet_sample for insert
     to authenticated
     with check (true);
 
 create policy "Authenticated users can update lists"
-    on lists for update
+    on listlet_sample for update
     to authenticated
     using (true);
 
 -- Enable Realtime
-alter publication supabase_realtime add table lists;
+alter publication supabase_realtime add table listlet_sample;

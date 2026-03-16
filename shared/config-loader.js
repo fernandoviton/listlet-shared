@@ -27,7 +27,7 @@
         if (!foundLocal) {
             window.CONFIG = {
                 SUPABASE_URL: null,
-                SUPABASE_KEY: null,
+                SUPABASE_PUBLISHABLE_KEY: null,
                 APP_TITLE: 'Listlet',
                 APP_CONTAINER: 'default',
                 DEFAULT_LIST_NAME: 'demo'
