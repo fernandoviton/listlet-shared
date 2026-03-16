@@ -1,13 +1,12 @@
 // API layer - Supabase backed with localStorage mock mode
 
-function createApi(listName, containerName) {
+function createApi(listName) {
     var isMock = !CONFIG.SUPABASE_URL;
-    var storageKey = 'listlet_' + containerName + '_' + listName;
+    var storageKey = 'listlet_' + CONFIG.DB_TABLE + '_' + listName;
 
     return {
         isMock: isMock,
         listName: listName,
-        containerName: containerName,
 
         /**
          * Fetch data for this list
@@ -27,7 +26,6 @@ function createApi(listName, containerName) {
             var result = await window.supabaseClient
                 .from(CONFIG.DB_TABLE)
                 .select('data')
-                .eq('container', containerName)
                 .eq('name', listName)
                 .single();
 
@@ -36,7 +34,7 @@ function createApi(listName, containerName) {
                     // Row not found — create it with default
                     var insertResult = await window.supabaseClient
                         .from(CONFIG.DB_TABLE)
-                        .upsert({ container: containerName, name: listName, data: mockDefault })
+                        .upsert({ name: listName, data: mockDefault })
                         .select('data')
                         .single();
                     if (insertResult.error) throw new Error(insertResult.error.message);
@@ -65,7 +63,6 @@ function createApi(listName, containerName) {
             var fetchResult = await window.supabaseClient
                 .from(CONFIG.DB_TABLE)
                 .select('data')
-                .eq('container', containerName)
                 .eq('name', listName)
                 .single();
 
@@ -75,7 +72,7 @@ function createApi(listName, containerName) {
             // Upsert back
             var saveResult = await window.supabaseClient
                 .from(CONFIG.DB_TABLE)
-                .upsert({ container: containerName, name: listName, data: data })
+                .upsert({ name: listName, data: data })
                 .select('data')
                 .single();
 
@@ -86,15 +83,14 @@ function createApi(listName, containerName) {
 }
 
 /**
- * Get all lists for a container
- * @param {string} containerName
+ * Get all lists
  * @returns {Promise<Array>}
  */
-createApi.getAllLists = async function(containerName) {
+createApi.getAllLists = async function() {
     var isMock = !CONFIG.SUPABASE_URL;
 
     if (isMock) {
-        var prefix = 'listlet_' + containerName + '_';
+        var prefix = 'listlet_' + CONFIG.DB_TABLE + '_';
         var lists = [];
         for (var i = 0; i < localStorage.length; i++) {
             var key = localStorage.key(i);
@@ -110,7 +106,6 @@ createApi.getAllLists = async function(containerName) {
     var result = await window.supabaseClient
         .from(CONFIG.DB_TABLE)
         .select('name, data, updated_at')
-        .eq('container', containerName)
         .order('updated_at', { ascending: false });
 
     if (result.error) throw new Error(result.error.message);

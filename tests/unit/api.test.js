@@ -22,8 +22,8 @@ beforeEach(() => {
 
 describe('createApi mock mode', () => {
     test('isMock is true when CONFIG has no SUPABASE_URL', () => {
-        global.CONFIG = { SUPABASE_URL: null };
-        const api = createApi('test', 'myapp');
+        global.CONFIG = { SUPABASE_URL: null, DB_TABLE: 'myapp' };
+        const api = createApi('test');
         expect(api.isMock).toBe(true);
         delete global.CONFIG;
     });
@@ -31,8 +31,8 @@ describe('createApi mock mode', () => {
     describe('fetchData', () => {
         let api;
         beforeEach(() => {
-            global.CONFIG = { SUPABASE_URL: null };
-            api = createApi('mylist', 'myapp');
+            global.CONFIG = { SUPABASE_URL: null, DB_TABLE: 'myapp' };
+            api = createApi('mylist');
         });
         afterEach(() => { delete global.CONFIG; });
 
@@ -59,8 +59,8 @@ describe('createApi mock mode', () => {
     describe('saveData', () => {
         let api;
         beforeEach(() => {
-            global.CONFIG = { SUPABASE_URL: null };
-            api = createApi('mylist', 'myapp');
+            global.CONFIG = { SUPABASE_URL: null, DB_TABLE: 'myapp' };
+            api = createApi('mylist');
         });
         afterEach(() => { delete global.CONFIG; });
 
@@ -80,29 +80,29 @@ describe('createApi mock mode', () => {
 
 describe('createApi.getAllLists mock mode', () => {
     beforeEach(() => {
-        global.CONFIG = { SUPABASE_URL: null };
+        global.CONFIG = { SUPABASE_URL: null, DB_TABLE: 'myapp' };
     });
     afterEach(() => { delete global.CONFIG; });
 
     test('returns empty array when no matching keys', async () => {
-        const result = await createApi.getAllLists('myapp');
+        const result = await createApi.getAllLists();
         expect(result).toEqual([]);
     });
 
-    test('returns lists matching container prefix', async () => {
+    test('returns lists matching table prefix', async () => {
         storage['listlet_myapp_list1'] = JSON.stringify({ title: 'First' });
         storage['listlet_myapp_list2'] = JSON.stringify({ title: 'Second' });
         storage['listlet_other_list3'] = JSON.stringify({ title: 'Other app' });
 
-        const result = await createApi.getAllLists('myapp');
+        const result = await createApi.getAllLists();
         expect(result).toHaveLength(2);
         expect(result.map(r => r.name).sort()).toEqual(['list1', 'list2']);
         expect(result[0].data).toBeDefined();
     });
 
-    test('does not include keys from other apps', async () => {
+    test('does not include keys from other tables', async () => {
         storage['listlet_otherapp_list1'] = JSON.stringify({ x: 1 });
-        const result = await createApi.getAllLists('myapp');
+        const result = await createApi.getAllLists();
         expect(result).toEqual([]);
     });
 });
@@ -110,15 +110,13 @@ describe('createApi.getAllLists mock mode', () => {
 describe('createApi Supabase mode', () => {
     let api;
     beforeEach(() => {
-        global.CONFIG = { SUPABASE_URL: 'https://test.supabase.co' };
+        global.CONFIG = { SUPABASE_URL: 'https://test.supabase.co', DB_TABLE: 'myapp' };
         global.window = global.window || {};
         global.window.supabaseClient = {
             from: jest.fn(() => ({
                 select: jest.fn(() => ({
                     eq: jest.fn(() => ({
-                        eq: jest.fn(() => ({
-                            single: jest.fn(() => Promise.resolve({ data: { data: { items: [1] } }, error: null }))
-                        }))
+                        single: jest.fn(() => Promise.resolve({ data: { data: { items: [1] } }, error: null }))
                     }))
                 })),
                 upsert: jest.fn(() => ({
@@ -128,7 +126,7 @@ describe('createApi Supabase mode', () => {
                 }))
             }))
         };
-        api = createApi('mylist', 'myapp');
+        api = createApi('mylist');
     });
     afterEach(() => {
         delete global.CONFIG;

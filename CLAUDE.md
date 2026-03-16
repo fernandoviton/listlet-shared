@@ -21,7 +21,7 @@ A collaborative web app built on the listlet-shared starter kit.
 
 - `config-loader.js` — Loads config, sets `window.CONFIG`, auto-mocks on localhost
 - `supabase-client.js` — Creates `window.supabaseClient` from CONFIG
-- `api.js` — `createApi(listName, containerName)` — Supabase CRUD + mock mode
+- `api.js` — `createApi(listName)` — Supabase CRUD + mock mode
 - `auth.js` — Google OAuth login, session check, mock bypass
 - `home.js` — Home page: lists all lists, create new, open by name
 - `header.js` — Header bar: app title, home button, profile/logout
@@ -32,16 +32,15 @@ A collaborative web app built on the listlet-shared starter kit.
 
 - `SUPABASE_URL` / `SUPABASE_PUBLISHABLE_KEY` — Supabase project credentials (null = mock mode)
 - `APP_TITLE` — Displayed in header and login page
-- `APP_CONTAINER` — Identifies this app in the database
 - `DEFAULT_LIST_NAME` — Fallback when no `?list=` param
 
 ## API Usage
 
 ```js
-var api = createApi(listName, CONFIG.APP_CONTAINER);
+var api = createApi(listName);
 var data = await api.fetchData({ rows: [] });  // default if no existing row
 await api.saveData(function(d) { d.rows.push({id: generateListId(), text: ''}); });
-var allLists = await createApi.getAllLists(CONFIG.APP_CONTAINER);
+var allLists = await createApi.getAllLists();
 ```
 
 ## Local Development

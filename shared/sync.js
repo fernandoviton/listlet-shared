@@ -29,7 +29,7 @@ var Sync = (function() {
                     event: '*',
                     schema: 'public',
                     table: CONFIG.DB_TABLE,
-                    filter: 'container=eq.' + api.containerName + ',name=eq.' + api.listName
+                    filter: 'name=eq.' + api.listName
                 }, function() {
                     refreshFromServer();
                 })

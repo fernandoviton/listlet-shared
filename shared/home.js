@@ -2,8 +2,6 @@
 
 var Home = (function() {
     async function render(container) {
-        var containerName = CONFIG.APP_CONTAINER;
-
         container.innerHTML =
             '<div class="home-page">' +
                 '<div class="home-actions">' +
@@ -40,7 +38,7 @@ var Home = (function() {
 
         // Load existing lists
         try {
-            var lists = await createApi.getAllLists(containerName);
+            var lists = await createApi.getAllLists();
             var listsContainer = document.getElementById('homeListsContainer');
 
             if (lists.length === 0) {

@@ -3,12 +3,10 @@
 
 create table if not exists listlet_sample (
     id uuid default gen_random_uuid() primary key,
-    container text not null,
-    name text not null,
+    name text not null unique,
     data jsonb not null default '{}',
     created_at timestamptz default now(),
-    updated_at timestamptz default now(),
-    unique(container, name)
+    updated_at timestamptz default now()
 );
 
 -- Auto-update updated_at on changes

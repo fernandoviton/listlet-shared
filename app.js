@@ -10,7 +10,7 @@ var App = (function() {
     function init(el, name) {
         container = el;
         listName = name;
-        api = createApi(name, CONFIG.APP_CONTAINER);
+        api = createApi(name);
 
         Sync.init(api, function(data) {
             renderTable(data);

@@ -39,7 +39,7 @@ Then replace `app.js` and `app.css` with your own logic. Everything in `shared/`
 ## Architecture
 
 - **No build step** — vanilla JS, IIFEs, script tags
-- **Single table per app** — see `sql/setup.sql` for schema, isolated by `container` column
+- **Single table per app** — see `sql/setup.sql` for schema
 - **Mock mode** — localStorage on localhost, no backend needed
 - **Auth** — Google OAuth via Supabase, auto-bypassed in mock mode
 - **Realtime** — Supabase Realtime subscriptions + polling fallback
@@ -54,7 +54,7 @@ npm run test:all  # Both
 
 ## Deployment
 
-Push to `main` deploys to GitHub Pages via `.github/workflows/deploy.yml`. The deploy workflow generates `config.js` from `config.js`, replacing the Supabase placeholders with repo secrets. `APP_TITLE` and `APP_CONTAINER` are set in `config.js` (by `install.sh` or manually).
+Push to `main` deploys to GitHub Pages via `.github/workflows/deploy.yml`. The deploy workflow generates `config.js` from `config.js`, replacing the Supabase placeholders with repo secrets. `APP_TITLE` and `DB_TABLE` are set in `config.js` (by `install.sh` or manually).
 
 ### Enable GitHub Pages
 
