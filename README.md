@@ -29,8 +29,12 @@ Then replace `app.js` and `app.css` with your own logic. Everything in `shared/`
 1. Create a project at [supabase.com](https://supabase.com)
 2. Run `sql/setup.sql` in the SQL Editor
 3. Enable Google OAuth in Authentication > Providers.  See https://github.com/fernandoviton/explore-supabase for more details.
-4. For local dev with real backend: copy `config.js` to `config.local.js` and fill in your keys
-5. For deployment: add repo secrets `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` — the deploy workflow generates `config.js` from these.  See 'Deployment' below.
+4. In Supabase Authentication → URL Configuration:
+   - Set **Site URL** to your deployed app URL (e.g. `https://<user>.github.io/<repo>/`)
+   - Add the same URL to **Redirect URLs**
+5. In Google Cloud Console, add `https://<your-project>.supabase.co/auth/v1/callback` to your OAuth client's **Authorized redirect URIs** - this is only needed once per supabase project (not per listlet repo)
+6. For local dev with real backend: copy `config.js` to `config.local.js` and fill in your keys
+7. For deployment: add repo secrets `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` — the deploy workflow generates `config.js` from these.  See 'Deployment' below.
 
 ## Architecture
 
