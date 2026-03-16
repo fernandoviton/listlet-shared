@@ -35,7 +35,7 @@ function createApi(listName) {
                 // Row not found — create it with default
                 var insertResult = await window.supabaseClient
                     .from(CONFIG.DB_TABLE)
-                    .upsert({ name: listName, data: mockDefault })
+                    .upsert({ name: listName, data: mockDefault }, { onConflict: 'name' })
                     .select('data')
                     .single();
                 if (insertResult.error) throw new Error(insertResult.error.message);
@@ -71,7 +71,7 @@ function createApi(listName) {
             // Upsert back
             var saveResult = await window.supabaseClient
                 .from(CONFIG.DB_TABLE)
-                .upsert({ name: listName, data: data })
+                .upsert({ name: listName, data: data }, { onConflict: 'name' })
                 .select('data')
                 .single();
 
