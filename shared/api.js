@@ -27,20 +27,19 @@ function createApi(listName) {
                 .from(CONFIG.DB_TABLE)
                 .select('data')
                 .eq('name', listName)
-                .single();
+                .maybeSingle();
 
-            if (result.error) {
-                if (result.error.code === 'PGRST116') {
-                    // Row not found — create it with default
-                    var insertResult = await window.supabaseClient
-                        .from(CONFIG.DB_TABLE)
-                        .upsert({ name: listName, data: mockDefault })
-                        .select('data')
-                        .single();
-                    if (insertResult.error) throw new Error(insertResult.error.message);
-                    return insertResult.data.data;
-                }
-                throw new Error(result.error.message);
+            if (result.error) throw new Error(result.error.message);
+
+            if (!result.data) {
+                // Row not found — create it with default
+                var insertResult = await window.supabaseClient
+                    .from(CONFIG.DB_TABLE)
+                    .upsert({ name: listName, data: mockDefault })
+                    .select('data')
+                    .single();
+                if (insertResult.error) throw new Error(insertResult.error.message);
+                return insertResult.data.data;
             }
 
             return result.data.data;
@@ -64,7 +63,7 @@ function createApi(listName) {
                 .from(CONFIG.DB_TABLE)
                 .select('data')
                 .eq('name', listName)
-                .single();
+                .maybeSingle();
 
             var data = (fetchResult.data && fetchResult.data.data) || {};
             if (mutate) mutate(data);
