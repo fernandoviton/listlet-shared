@@ -12,8 +12,8 @@ var App = (function() {
         listName = name;
         api = createApi(name);
 
-        Sync.init(api, function(data) {
-            renderTable(data);
+        Sync.init(api, function(items) {
+            renderTable(items);
         });
 
         loadAndRender();
@@ -22,15 +22,20 @@ var App = (function() {
     async function loadAndRender() {
         container.innerHTML = '<div class="loading">Loading...</div>';
         try {
-            var data = await api.fetchData({ rows: [] });
-            renderTable(data);
+            var items = await api.fetchItems();
+            renderTable(items);
         } catch (err) {
             container.innerHTML = '<div class="error">Failed to load: ' + escapeHtml(err.message) + '</div>';
         }
     }
 
-    function renderTable(data) {
-        if (!data.rows) data.rows = [];
+    function formatTimestamp(ts) {
+        if (!ts) return '';
+        return new Date(ts).toLocaleString();
+    }
+
+    function renderTable(items) {
+        if (!items) items = [];
 
         var html = '<div class="table-editor">' +
             '<div class="table-toolbar">' +
@@ -39,19 +44,26 @@ var App = (function() {
             '</div>' +
             '<table class="data-table">' +
                 '<thead><tr>' +
+                    '<th class="col-id">ID</th>' +
                     '<th>Content</th>' +
+                    '<th class="col-timestamp">Created</th>' +
+                    '<th class="col-timestamp">Updated</th>' +
                     '<th class="col-actions">Actions</th>' +
                 '</tr></thead>' +
                 '<tbody>';
 
-        for (var i = 0; i < data.rows.length; i++) {
-            var row = data.rows[i];
-            html += '<tr data-id="' + escapeHtml(row.id) + '">' +
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var shortId = item.id ? item.id.substring(0, 8) : '';
+            html += '<tr data-id="' + escapeHtml(item.id) + '">' +
+                '<td class="col-id"><span class="id-display">' + escapeHtml(shortId) + '</span></td>' +
                 '<td>' +
-                    '<input type="text" class="table-input" value="' + escapeHtml(row.text || '') + '" data-index="' + i + '">' +
+                    '<input type="text" class="table-input" value="' + escapeHtml(item.content || '') + '" data-id="' + escapeHtml(item.id) + '">' +
                 '</td>' +
+                '<td class="col-timestamp">' + escapeHtml(formatTimestamp(item.created_at)) + '</td>' +
+                '<td class="col-timestamp cell-updated-at">' + escapeHtml(formatTimestamp(item.updated_at)) + '</td>' +
                 '<td class="col-actions">' +
-                    '<button class="btn-icon delete-btn" data-index="' + i + '" title="Delete">&#10005;</button>' +
+                    '<button class="btn-icon delete-btn" data-id="' + escapeHtml(item.id) + '" title="Delete">&#10005;</button>' +
                 '</td>' +
             '</tr>';
         }
@@ -85,11 +97,9 @@ var App = (function() {
         Sync.resetActivity();
         showSaving();
         try {
-            var data = await api.saveData(function(d) {
-                if (!d.rows) d.rows = [];
-                d.rows.push({ id: generateListId(), text: '' });
-            });
-            renderTable(data);
+            await api.createItem({ content: '' });
+            var items = await api.fetchItems();
+            renderTable(items);
             // Focus the new row's input
             var inputs = container.querySelectorAll('.table-input');
             if (inputs.length > 0) {
@@ -103,7 +113,7 @@ var App = (function() {
 
     function handleEdit(e) {
         Sync.resetActivity();
-        var index = parseInt(e.target.dataset.index);
+        var id = e.target.dataset.id;
         var value = e.target.value;
 
         // Debounce save
@@ -111,11 +121,15 @@ var App = (function() {
         savingTimeout = setTimeout(async function() {
             showSaving();
             try {
-                await api.saveData(function(d) {
-                    if (d.rows && d.rows[index]) {
-                        d.rows[index].text = value;
+                var updated = await api.updateItem(id, { content: value });
+                // Update the timestamp cell without re-rendering (keeps cursor)
+                if (updated) {
+                    var tr = container.querySelector('tr[data-id="' + id + '"]');
+                    if (tr) {
+                        var tsCell = tr.querySelector('.cell-updated-at');
+                        if (tsCell) tsCell.textContent = formatTimestamp(updated.updated_at);
                     }
-                });
+                }
             } catch (err) {
                 console.error('Failed to save:', err);
             }
@@ -125,13 +139,12 @@ var App = (function() {
 
     async function handleDelete(e) {
         Sync.resetActivity();
-        var index = parseInt(e.target.dataset.index);
+        var id = e.target.dataset.id;
         showSaving();
         try {
-            var data = await api.saveData(function(d) {
-                if (d.rows) d.rows.splice(index, 1);
-            });
-            renderTable(data);
+            await api.deleteItem(id);
+            var items = await api.fetchItems();
+            renderTable(items);
         } catch (err) {
             console.error('Failed to delete:', err);
         }

@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('./fixtures');
 
 test.describe('Auth', () => {
     test('mock mode bypasses login and shows app', async ({ page }) => {

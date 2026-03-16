@@ -29,7 +29,7 @@ var Sync = (function() {
                     event: '*',
                     schema: 'public',
                     table: CONFIG.DB_TABLE,
-                    filter: 'name=eq.' + api.listName
+                    filter: 'list_name=eq.' + api.listName
                 }, function() {
                     refreshFromServer();
                 })
@@ -70,7 +70,7 @@ var Sync = (function() {
     async function refreshFromServer() {
         if (!api) return;
         try {
-            var data = await api.fetchData();
+            var data = await api.fetchItems();
             if (onSyncCallback) {
                 onSyncCallback(data);
             }

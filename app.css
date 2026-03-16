@@ -1,7 +1,7 @@
 /* Table editor styles - THE REPLACEABLE FILE */
 
 .table-editor {
-    max-width: 700px;
+    max-width: 900px;
     margin: 0 auto;
     padding: 20px;
 }
@@ -41,6 +41,23 @@
 
 .data-table tr:last-child td {
     border-bottom: none;
+}
+
+.col-id {
+    width: 80px;
+}
+
+.id-display {
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: #999;
+}
+
+.col-timestamp {
+    width: 160px;
+    font-size: 0.85rem;
+    color: #888;
+    white-space: nowrap;
 }
 
 .col-actions {

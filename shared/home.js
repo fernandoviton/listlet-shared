@@ -50,9 +50,10 @@ var Home = (function() {
             for (var i = 0; i < lists.length; i++) {
                 var item = lists[i];
                 var updated = item.updated_at ? new Date(item.updated_at).toLocaleDateString() : '';
+                var countLabel = item.count !== undefined ? ' (' + item.count + (item.count === 1 ? ' item' : ' items') + ')' : '';
                 html += '<li class="home-list-item">' +
-                    '<a href="./?list=' + encodeURIComponent(item.name) + '">' +
-                        '<span class="home-list-name">' + escapeHtml(item.name) + '</span>' +
+                    '<a href="./?list=' + encodeURIComponent(item.list_name) + '">' +
+                        '<span class="home-list-name">' + escapeHtml(item.list_name) + escapeHtml(countLabel) + '</span>' +
                         (updated ? '<span class="home-list-date">' + escapeHtml(updated) + '</span>' : '') +
                     '</a>' +
                 '</li>';

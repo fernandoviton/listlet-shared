@@ -1,6 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 
+// Mock crypto.randomUUID
+global.crypto = { randomUUID: jest.fn(() => 'mock-uuid-1234') };
+
 // Mock localStorage
 const storage = {};
 global.localStorage = {
@@ -18,6 +21,7 @@ eval(code.replace('function createApi(', 'global.createApi = function createApi(
 beforeEach(() => {
     Object.keys(storage).forEach(k => delete storage[k]);
     jest.clearAllMocks();
+    global.crypto.randomUUID = jest.fn(() => 'mock-uuid-1234');
 });
 
 describe('createApi mock mode', () => {
@@ -28,7 +32,7 @@ describe('createApi mock mode', () => {
         delete global.CONFIG;
     });
 
-    describe('fetchData', () => {
+    describe('fetchItems', () => {
         let api;
         beforeEach(() => {
             global.CONFIG = { SUPABASE_URL: null, DB_TABLE: 'myapp' };
@@ -36,27 +40,22 @@ describe('createApi mock mode', () => {
         });
         afterEach(() => { delete global.CONFIG; });
 
-        test('returns mockDefault when no stored data', async () => {
-            const result = await api.fetchData({ rows: [] });
-            expect(result).toEqual({ rows: [] });
+        test('returns empty array when no stored data', async () => {
+            const result = await api.fetchItems();
+            expect(result).toEqual([]);
         });
 
-        test('persists mockDefault to localStorage', async () => {
-            await api.fetchData({ rows: [] });
-            expect(localStorage.setItem).toHaveBeenCalledWith(
-                'listlet_myapp_mylist',
-                JSON.stringify({ rows: [] })
-            );
-        });
-
-        test('returns stored data when available', async () => {
-            storage['listlet_myapp_mylist'] = JSON.stringify({ rows: [{ id: 1 }] });
-            const result = await api.fetchData({ rows: [] });
-            expect(result).toEqual({ rows: [{ id: 1 }] });
+        test('returns stored items', async () => {
+            const items = [
+                { id: 'abc', list_name: 'mylist', content: 'hello', created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-01T00:00:00.000Z' }
+            ];
+            storage['listlet_myapp_mylist'] = JSON.stringify(items);
+            const result = await api.fetchItems();
+            expect(result).toEqual(items);
         });
     });
 
-    describe('saveData', () => {
+    describe('createItem', () => {
         let api;
         beforeEach(() => {
             global.CONFIG = { SUPABASE_URL: null, DB_TABLE: 'myapp' };
@@ -64,16 +63,73 @@ describe('createApi mock mode', () => {
         });
         afterEach(() => { delete global.CONFIG; });
 
-        test('applies mutation and saves', async () => {
-            storage['listlet_myapp_mylist'] = JSON.stringify({ count: 1 });
-            const result = await api.saveData(d => { d.count = 2; });
-            expect(result.count).toBe(2);
-            expect(JSON.parse(storage['listlet_myapp_mylist']).count).toBe(2);
+        test('creates item with generated id and timestamps', async () => {
+            const item = await api.createItem({ content: 'test' });
+            expect(item.id).toBe('mock-uuid-1234');
+            expect(item.list_name).toBe('mylist');
+            expect(item.content).toBe('test');
+            expect(item.created_at).toBeDefined();
+            expect(item.updated_at).toBeDefined();
         });
 
-        test('starts with empty object when no stored data', async () => {
-            const result = await api.saveData(d => { d.items = [1, 2]; });
-            expect(result).toEqual({ items: [1, 2] });
+        test('persists item to localStorage', async () => {
+            await api.createItem({ content: 'test' });
+            const stored = JSON.parse(storage['listlet_myapp_mylist']);
+            expect(stored).toHaveLength(1);
+            expect(stored[0].content).toBe('test');
+        });
+
+        test('appends to existing items', async () => {
+            storage['listlet_myapp_mylist'] = JSON.stringify([
+                { id: 'existing', list_name: 'mylist', content: 'first', created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-01T00:00:00.000Z' }
+            ]);
+            await api.createItem({ content: 'second' });
+            const stored = JSON.parse(storage['listlet_myapp_mylist']);
+            expect(stored).toHaveLength(2);
+        });
+    });
+
+    describe('updateItem', () => {
+        let api;
+        beforeEach(() => {
+            global.CONFIG = { SUPABASE_URL: null, DB_TABLE: 'myapp' };
+            api = createApi('mylist');
+            storage['listlet_myapp_mylist'] = JSON.stringify([
+                { id: 'item-1', list_name: 'mylist', content: 'old', created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-01T00:00:00.000Z' }
+            ]);
+        });
+        afterEach(() => { delete global.CONFIG; });
+
+        test('updates content and updated_at', async () => {
+            const item = await api.updateItem('item-1', { content: 'new' });
+            expect(item.content).toBe('new');
+            expect(item.updated_at).not.toBe('2026-01-01T00:00:00.000Z');
+        });
+
+        test('persists changes to localStorage', async () => {
+            await api.updateItem('item-1', { content: 'new' });
+            const stored = JSON.parse(storage['listlet_myapp_mylist']);
+            expect(stored[0].content).toBe('new');
+        });
+    });
+
+    describe('deleteItem', () => {
+        let api;
+        beforeEach(() => {
+            global.CONFIG = { SUPABASE_URL: null, DB_TABLE: 'myapp' };
+            api = createApi('mylist');
+            storage['listlet_myapp_mylist'] = JSON.stringify([
+                { id: 'item-1', list_name: 'mylist', content: 'keep', created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-01T00:00:00.000Z' },
+                { id: 'item-2', list_name: 'mylist', content: 'delete', created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-01T00:00:00.000Z' }
+            ]);
+        });
+        afterEach(() => { delete global.CONFIG; });
+
+        test('removes item by id', async () => {
+            await api.deleteItem('item-2');
+            const stored = JSON.parse(storage['listlet_myapp_mylist']);
+            expect(stored).toHaveLength(1);
+            expect(stored[0].id).toBe('item-1');
         });
     });
 });
@@ -89,19 +145,28 @@ describe('createApi.getAllLists mock mode', () => {
         expect(result).toEqual([]);
     });
 
-    test('returns lists matching table prefix', async () => {
-        storage['listlet_myapp_list1'] = JSON.stringify({ title: 'First' });
-        storage['listlet_myapp_list2'] = JSON.stringify({ title: 'Second' });
-        storage['listlet_other_list3'] = JSON.stringify({ title: 'Other app' });
+    test('returns lists with count and updated_at', async () => {
+        storage['listlet_myapp_list1'] = JSON.stringify([
+            { id: '1', list_name: 'list1', content: 'a', created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-02T00:00:00.000Z' },
+            { id: '2', list_name: 'list1', content: 'b', created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-03T00:00:00.000Z' }
+        ]);
+        storage['listlet_myapp_list2'] = JSON.stringify([
+            { id: '3', list_name: 'list2', content: 'c', created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-01T00:00:00.000Z' }
+        ]);
 
         const result = await createApi.getAllLists();
         expect(result).toHaveLength(2);
-        expect(result.map(r => r.name).sort()).toEqual(['list1', 'list2']);
-        expect(result[0].data).toBeDefined();
+
+        const list1 = result.find(r => r.list_name === 'list1');
+        expect(list1.count).toBe(2);
+        expect(list1.updated_at).toBe('2026-01-03T00:00:00.000Z');
+
+        const list2 = result.find(r => r.list_name === 'list2');
+        expect(list2.count).toBe(1);
     });
 
     test('does not include keys from other tables', async () => {
-        storage['listlet_otherapp_list1'] = JSON.stringify({ x: 1 });
+        storage['listlet_otherapp_list1'] = JSON.stringify([{ id: '1' }]);
         const result = await createApi.getAllLists();
         expect(result).toEqual([]);
     });
@@ -116,13 +181,23 @@ describe('createApi Supabase mode', () => {
             from: jest.fn(() => ({
                 select: jest.fn(() => ({
                     eq: jest.fn(() => ({
-                        single: jest.fn(() => Promise.resolve({ data: { data: { items: [1] } }, error: null }))
+                        order: jest.fn(() => Promise.resolve({ data: [], error: null }))
                     }))
                 })),
-                upsert: jest.fn(() => ({
+                insert: jest.fn(() => ({
                     select: jest.fn(() => ({
-                        single: jest.fn(() => Promise.resolve({ data: { data: { items: [1, 2] } }, error: null }))
+                        single: jest.fn(() => Promise.resolve({ data: { id: 'new-id', list_name: 'mylist', content: 'test', created_at: '2026-01-01', updated_at: '2026-01-01' }, error: null }))
                     }))
+                })),
+                update: jest.fn(() => ({
+                    eq: jest.fn(() => ({
+                        select: jest.fn(() => ({
+                            single: jest.fn(() => Promise.resolve({ data: { id: 'id1', content: 'updated' }, error: null }))
+                        }))
+                    }))
+                })),
+                delete: jest.fn(() => ({
+                    eq: jest.fn(() => Promise.resolve({ error: null }))
                 }))
             }))
         };

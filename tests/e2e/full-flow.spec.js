@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('./fixtures');
 
 test.describe('Full flow', () => {
     test('auth -> home -> create -> edit -> back to home', async ({ page }) => {

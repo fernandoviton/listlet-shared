@@ -21,15 +21,15 @@ afterEach(() => {
 
 describe('Sync', () => {
     test('init starts polling', () => {
-        const api = { fetchData: jest.fn(() => Promise.resolve({})) };
+        const api = { fetchItems: jest.fn(() => Promise.resolve([])) };
         const onSync = jest.fn();
 
         Sync.init(api, onSync);
         expect(Sync.isPaused()).toBe(false);
     });
 
-    test('polling calls fetchData at interval', async () => {
-        const api = { fetchData: jest.fn(() => Promise.resolve({ items: [1] })) };
+    test('polling calls fetchItems at interval', async () => {
+        const api = { fetchItems: jest.fn(() => Promise.resolve([{ id: '1' }])) };
         const onSync = jest.fn();
 
         Sync.init(api, onSync);
@@ -38,11 +38,11 @@ describe('Sync', () => {
         jest.advanceTimersByTime(30000);
         await Promise.resolve(); // flush microtasks
 
-        expect(api.fetchData).toHaveBeenCalled();
+        expect(api.fetchItems).toHaveBeenCalled();
     });
 
     test('pauses after inactivity', () => {
-        const api = { fetchData: jest.fn(() => Promise.resolve({})) };
+        const api = { fetchItems: jest.fn(() => Promise.resolve([])) };
         Sync.init(api, jest.fn());
 
         // Advance past pause threshold (5 minutes)
@@ -52,7 +52,7 @@ describe('Sync', () => {
     });
 
     test('resetActivity resumes when paused', () => {
-        const api = { fetchData: jest.fn(() => Promise.resolve({})) };
+        const api = { fetchItems: jest.fn(() => Promise.resolve([])) };
         Sync.init(api, jest.fn());
 
         Sync.pausePolling();
@@ -63,22 +63,22 @@ describe('Sync', () => {
     });
 
     test('stop clears polling', () => {
-        const api = { fetchData: jest.fn(() => Promise.resolve({})) };
+        const api = { fetchItems: jest.fn(() => Promise.resolve([])) };
         Sync.init(api, jest.fn());
 
         Sync.stop();
         expect(Sync.isPaused()).toBe(true);
     });
 
-    test('manualRefresh calls fetchData and resets activity', async () => {
-        const api = { fetchData: jest.fn(() => Promise.resolve({ x: 1 })) };
+    test('manualRefresh calls fetchItems and resets activity', async () => {
+        const api = { fetchItems: jest.fn(() => Promise.resolve([{ id: '1' }])) };
         const onSync = jest.fn();
         Sync.init(api, onSync);
 
         Sync.pausePolling();
         await Sync.manualRefresh();
 
-        expect(api.fetchData).toHaveBeenCalled();
+        expect(api.fetchItems).toHaveBeenCalled();
         expect(Sync.isPaused()).toBe(false);
     });
 });

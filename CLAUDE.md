@@ -34,13 +34,24 @@ A collaborative web app built on the listlet-shared starter kit.
 - `APP_TITLE` — Displayed in header and login page
 - `DEFAULT_LIST_NAME` — Fallback when no `?list=` param
 
+## Database Schema
+
+Each item is its own row in `listlet_sample` (per-row model, not a single JSON blob per list):
+
+- `id` (uuid, PK) — auto-generated
+- `list_name` (text, indexed) — groups items into lists
+- `content` (text) — the item's content
+- `created_at` / `updated_at` (timestamptz) — auto-managed
+
 ## API Usage
 
 ```js
 var api = createApi(listName);
-var data = await api.fetchData({ rows: [] });  // default if no existing row
-await api.saveData(function(d) { d.rows.push({id: generateListId(), text: ''}); });
-var allLists = await createApi.getAllLists();
+var items = await api.fetchItems();              // returns array of item objects
+var item = await api.createItem({content: ''});  // returns created item with id, timestamps
+var updated = await api.updateItem(id, {content: 'new'});  // returns updated item
+await api.deleteItem(id);
+var allLists = await createApi.getAllLists();     // returns [{list_name, count, updated_at}]
 ```
 
 ## Local Development

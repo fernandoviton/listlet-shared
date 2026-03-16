@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('./fixtures');
 
 test.describe('Home page', () => {
     test.beforeEach(async ({ page }) => {
@@ -38,5 +38,19 @@ test.describe('Home page', () => {
         await page.fill('#openListInput', 'entertest');
         await page.press('#openListInput', 'Enter');
         await page.waitForURL(/\?list=entertest/);
+    });
+
+    test('shows item count next to list name', async ({ page }) => {
+        // Create a list with items
+        await page.goto('/?list=counttest');
+        await page.click('#addRowBtn');
+        await page.click('#addRowBtn');
+        await page.waitForTimeout(200);
+
+        // Go home
+        await page.goto('/');
+        const listItem = page.locator('.home-list-item', { hasText: 'counttest' });
+        await expect(listItem).toBeVisible();
+        await expect(listItem).toContainText('2 items');
     });
 });
