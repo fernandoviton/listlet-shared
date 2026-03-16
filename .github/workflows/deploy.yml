@@ -32,17 +32,9 @@ jobs:
       - name: Run unit tests
         run: npm test
 
-      - name: Generate config.js from secrets
+      - name: Inject Supabase secrets into config.js
         run: |
-          cat > config.js << EOF
-          var CONFIG = {
-              SUPABASE_URL: '${{ secrets.SUPABASE_URL }}',
-              SUPABASE_PUBLISHABLE_KEY: '${{ secrets.SUPABASE_PUBLISHABLE_KEY }}',
-              APP_TITLE: '${{ vars.APP_TITLE || 'Listlet' }}',
-              APP_CONTAINER: '${{ vars.APP_CONTAINER || 'default' }}',
-              DEFAULT_LIST_NAME: 'demo'
-          };
-          EOF
+          sed -i "s|SUPABASE_URL: ''|SUPABASE_URL: '${{ secrets.SUPABASE_URL }}'|; s|SUPABASE_PUBLISHABLE_KEY: ''|SUPABASE_PUBLISHABLE_KEY: '${{ secrets.SUPABASE_PUBLISHABLE_KEY }}'|" config.js
 
       - name: Generate version.js
         run: |

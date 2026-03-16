@@ -28,18 +28,18 @@ cp -r "$SCRIPT_DIR/sql" "$TARGET/"
 cp "$SCRIPT_DIR/index.html" "$TARGET/"
 cp "$SCRIPT_DIR/app.js" "$TARGET/"
 cp "$SCRIPT_DIR/app.css" "$TARGET/"
-cp "$SCRIPT_DIR/config.example.js" "$TARGET/"
+cp "$SCRIPT_DIR/config.js" "$TARGET/"
 cp "$SCRIPT_DIR/CLAUDE.md" "$TARGET/"
 cp "$SCRIPT_DIR/package.json" "$TARGET/"
 cp "$SCRIPT_DIR/jest.config.js" "$TARGET/"
 cp "$SCRIPT_DIR/playwright.config.js" "$TARGET/"
 
-# Replace placeholders in config.example.js
-sed "s/__APP_CONTAINER__/$APP_NAME/g; s/__APP_TITLE__/$APP_TITLE/g" "$TARGET/config.example.js" > "$TARGET/config.example.js.tmp"
-mv "$TARGET/config.example.js.tmp" "$TARGET/config.example.js"
+# Replace defaults in config.js
+sed "s|APP_CONTAINER: 'listlet'|APP_CONTAINER: '$APP_NAME'|; s|APP_TITLE: 'Listlet'|APP_TITLE: '$APP_TITLE'|" "$TARGET/config.js" > "$TARGET/config.js.tmp"
+mv "$TARGET/config.js.tmp" "$TARGET/config.js"
 
 # Replace placeholders in CLAUDE.md
-sed "s/__APP_CONTAINER__/$APP_NAME/g; s/__APP_TITLE__/$APP_TITLE/g" "$TARGET/CLAUDE.md" > "$TARGET/CLAUDE.md.tmp"
+sed "s|APP_CONTAINER: 'listlet'|APP_CONTAINER: '$APP_NAME'|; s|APP_TITLE: 'Listlet'|APP_TITLE: '$APP_TITLE'|; s|^# Listlet|# $APP_TITLE|" "$TARGET/CLAUDE.md" > "$TARGET/CLAUDE.md.tmp"
 mv "$TARGET/CLAUDE.md.tmp" "$TARGET/CLAUDE.md"
 
 # Copy .gitignore
@@ -55,7 +55,7 @@ echo ""
 echo "Done! Next steps:"
 echo "  cd $TARGET"
 echo "  npm install"
-echo "  cp config.example.js config.local.js   # Edit with your Supabase keys"
+echo "  cp config.js config.local.js   # Edit with your Supabase keys"
 echo "  python -m http.server 8000              # Mock mode works without Supabase"
 echo "  npm test                                # Run unit tests"
 echo "  npm run test:e2e                        # Run E2E tests"

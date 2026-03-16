@@ -1,4 +1,4 @@
-# __APP_TITLE__
+# Listlet
 
 A collaborative web app built on the listlet-shared starter kit.
 
@@ -14,7 +14,7 @@ A collaborative web app built on the listlet-shared starter kit.
 - `app.js` — **YOUR APP LOGIC.** Replace this with your own code. Must export `App` with `init(container, listName)`.
 - `app.css` — **YOUR APP STYLES.** Replace with your own styles.
 - `shared/` — Shared infrastructure. **Do not edit** — managed by listlet-shared.
-- `config.example.js` — Template config. Copy to `config.local.js` and fill in Supabase keys.
+- `config.js` — Template config. Copy to `config.local.js` and fill in Supabase keys.
 - `sql/setup.sql` — Database setup. Run in Supabase SQL Editor.
 
 ## Shared Infrastructure (`shared/`)
@@ -31,8 +31,8 @@ A collaborative web app built on the listlet-shared starter kit.
 ## Config Keys
 
 - `SUPABASE_URL` / `SUPABASE_PUBLISHABLE_KEY` — Supabase project credentials (null = mock mode)
-- `APP_TITLE` — Displayed in header and login page (`__APP_TITLE__`)
-- `APP_CONTAINER` — Identifies this app in the `lists` table (`__APP_CONTAINER__`)
+- `APP_TITLE` — Displayed in header and login page
+- `APP_CONTAINER` — Identifies this app in the database
 - `DEFAULT_LIST_NAME` — Fallback when no `?list=` param
 
 ## API Usage

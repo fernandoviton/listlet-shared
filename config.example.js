@@ -1,7 +1,0 @@
-var CONFIG = {
-    SUPABASE_URL: 'https://YOUR_PROJECT.supabase.co',
-    SUPABASE_PUBLISHABLE_KEY: 'YOUR_ANON_KEY',
-    APP_TITLE: '__APP_TITLE__',
-    APP_CONTAINER: '__APP_CONTAINER__',
-    DEFAULT_LIST_NAME: 'demo'
-};

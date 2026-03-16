@@ -29,13 +29,13 @@ Then replace `app.js` and `app.css` with your own logic. Everything in `shared/`
 1. Create a project at [supabase.com](https://supabase.com)
 2. Run `sql/setup.sql` in the SQL Editor
 3. Enable Google OAuth in Authentication > Providers.  See https://github.com/fernandoviton/explore-supabase for more details.
-4. For local dev with real backend: copy `config.example.js` to `config.local.js` and fill in your keys
+4. For local dev with real backend: copy `config.js` to `config.local.js` and fill in your keys
 5. For deployment: add repo secrets `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` — the deploy workflow generates `config.js` from these.  See 'Deployment' below.
 
 ## Architecture
 
 - **No build step** — vanilla JS, IIFEs, script tags
-- **Single `lists` table** — all apps share it, isolated by `container` column
+- **Single table per app** — see `sql/setup.sql` for schema, isolated by `container` column
 - **Mock mode** — localStorage on localhost, no backend needed
 - **Auth** — Google OAuth via Supabase, auto-bypassed in mock mode
 - **Realtime** — Supabase Realtime subscriptions + polling fallback
@@ -50,25 +50,20 @@ npm run test:all  # Both
 
 ## Deployment
 
-Push to `main` deploys to GitHub Pages via `.github/workflows/deploy.yml`. `config.js` is generated from repo secrets and variables.
+Push to `main` deploys to GitHub Pages via `.github/workflows/deploy.yml`. The deploy workflow generates `config.js` from `config.js`, replacing the Supabase placeholders with repo secrets. `APP_TITLE` and `APP_CONTAINER` are set in `config.js` (by `install.sh` or manually).
 
-### Set up repo secrets and variables
+### Set up repo secrets
 
 1. Go to your repo on GitHub → Settings → Secrets and variables → Actions
 2. Under **Secrets**, click "New repository secret" and add:
    - `SUPABASE_URL` — your project URL (e.g. `https://xyz.supabase.co`)
    - `SUPABASE_PUBLISHABLE_KEY` — your anon/public key from Supabase → Settings → API
-3. Under **Variables**, click "New repository variable" and add:
-   - `APP_TITLE` — display name for your app (e.g. `My App`)
-   - `APP_CONTAINER` — database container name (e.g. `myapp`)
 
 Or via CLI:
 
 ```bash
 gh secret set SUPABASE_URL --body "https://xyz.supabase.co"
 gh secret set SUPABASE_PUBLISHABLE_KEY --body "eyJ..."
-gh variable set APP_TITLE --body "My App"
-gh variable set APP_CONTAINER --body "myapp"
 ```
 
 ## What's Replaceable
