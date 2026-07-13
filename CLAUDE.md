@@ -57,6 +57,17 @@ await api.deleteItem(id);
 var allLists = await createApi.getAllLists();     // returns [{list_name, count, updated_at}]
 ```
 
+## CLI Tooling (`scripts/`)
+
+Node-only scaffolding for building CLI tools against the real Supabase table (never served to the browser):
+
+- `scripts/supabase-cli.js` — shared client + `login()`. Authenticates as a real user via a stored Google refresh token (same RLS path as the browser), **never** a `service_role` key. Rotated refresh tokens are written back to `.env` automatically.
+- `scripts/google-login.js` — one-time OAuth bootstrap: run it, sign in with Google at `http://localhost:3000`, and `SUPABASE_REFRESH_TOKEN` lands in `.env`. Requires the Google provider enabled and `http://localhost:3000/auth/callback` allowed in the Supabase dashboard.
+- `scripts/env-file.js` — pure `.env` line-upsert logic (unit tested).
+- Config comes from `.env` (copy `.env.example`): `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_REFRESH_TOKEN`, optional `DB_TABLE`.
+
+Build your app's CLI on top: `const { supabase, login, DB_TABLE } = require('./supabase-cli'); await login();` then query `DB_TABLE` normally.
+
 ## Local Development
 
 ```bash
