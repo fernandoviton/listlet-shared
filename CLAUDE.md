@@ -42,12 +42,15 @@ Each item is its own row in `listlet_sample` (per-row model, not a single JSON b
 - `list_name` (text, indexed) — groups items into lists
 - `content` (text) — the item's content
 - `created_at` / `updated_at` (timestamptz) — auto-managed
+- `content_date` (date, generated) — read-only projection of `content`'s JSON `date` field (NULL when content isn't JSON or has no date); backs date-range fetches. Apps that name this column differently set `CONFIG.CONTENT_DATE_COLUMN`.
 
 ## API Usage
 
 ```js
 var api = createApi(listName);
 var items = await api.fetchItems();              // returns array of item objects
+var week = await api.fetchItems({dateFrom: '2026-07-01', dateTo: '2026-07-07'});  // bounded by content_date (inclusive)
+api.setDateRange('2026-07-01', '2026-07-07');    // default range for later arg-less fetchItems (e.g. Sync refresh); null clears
 var item = await api.createItem({content: ''});  // returns created item with id, timestamps
 var updated = await api.updateItem(id, {content: 'new'});  // returns updated item
 await api.deleteItem(id);

@@ -55,6 +55,61 @@ describe('createApi mock mode', () => {
         });
     });
 
+    describe('fetchItems date range', () => {
+        let api;
+        beforeEach(() => {
+            global.CONFIG = { SUPABASE_URL: null, DB_TABLE: 'myapp' };
+            api = createApi('mylist');
+            storage['listlet_myapp_mylist'] = JSON.stringify([
+                { id: 'a', list_name: 'mylist', content: JSON.stringify({ date: '2026-07-01' }), created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-01T00:00:00.000Z' },
+                { id: 'b', list_name: 'mylist', content: JSON.stringify({ date: '2026-07-10' }), created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-01T00:00:00.000Z' },
+                { id: 'c', list_name: 'mylist', content: JSON.stringify({ date: '2026-07-20' }), created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-01T00:00:00.000Z' },
+                { id: 'undated', list_name: 'mylist', content: 'plain text, not JSON', created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-01T00:00:00.000Z' },
+                { id: 'nodate', list_name: 'mylist', content: JSON.stringify({ name: 'no date field' }), created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-01T00:00:00.000Z' }
+            ]);
+        });
+        afterEach(() => { delete global.CONFIG; });
+
+        test('explicit opts bound the fetch inclusively', async () => {
+            const result = await api.fetchItems({ dateFrom: '2026-07-01', dateTo: '2026-07-10' });
+            expect(result.map(i => i.id)).toEqual(['a', 'b']);
+        });
+
+        test('dateFrom alone drops earlier rows', async () => {
+            const result = await api.fetchItems({ dateFrom: '2026-07-05' });
+            expect(result.map(i => i.id)).toEqual(['b', 'c']);
+        });
+
+        test('rows without a parseable content date are excluded from any range', async () => {
+            const result = await api.fetchItems({ dateFrom: '2000-01-01', dateTo: '2099-12-31' });
+            expect(result.map(i => i.id)).toEqual(['a', 'b', 'c']);
+        });
+
+        test('no range returns all rows, dated or not', async () => {
+            const result = await api.fetchItems();
+            expect(result).toHaveLength(5);
+        });
+
+        test('setDateRange applies to arg-less fetchItems', async () => {
+            api.setDateRange('2026-07-10', '2026-07-31');
+            const result = await api.fetchItems();
+            expect(result.map(i => i.id)).toEqual(['b', 'c']);
+        });
+
+        test('explicit opts override the default range', async () => {
+            api.setDateRange('2026-07-10', '2026-07-31');
+            const result = await api.fetchItems({ dateFrom: '2026-07-01', dateTo: '2026-07-05' });
+            expect(result.map(i => i.id)).toEqual(['a']);
+        });
+
+        test('setDateRange(null, null) clears the default range', async () => {
+            api.setDateRange('2026-07-10', '2026-07-31');
+            api.setDateRange(null, null);
+            const result = await api.fetchItems();
+            expect(result).toHaveLength(5);
+        });
+    });
+
     describe('createItem', () => {
         let api;
         beforeEach(() => {
@@ -210,5 +265,57 @@ describe('createApi Supabase mode', () => {
 
     test('isMock is false', () => {
         expect(api.isMock).toBe(false);
+    });
+});
+
+describe('createApi Supabase mode date range', () => {
+    // Recording query builder: every chained call is logged so tests can
+    // assert which filters fetchItems applied.
+    function makeRecordingClient(calls) {
+        const builder = {
+            select: (...a) => { calls.push(['select', ...a]); return builder; },
+            eq: (...a) => { calls.push(['eq', ...a]); return builder; },
+            gte: (...a) => { calls.push(['gte', ...a]); return builder; },
+            lte: (...a) => { calls.push(['lte', ...a]); return builder; },
+            order: (...a) => { calls.push(['order', ...a]); return Promise.resolve({ data: [], error: null }); }
+        };
+        return { from: (...a) => { calls.push(['from', ...a]); return builder; } };
+    }
+
+    let calls;
+    beforeEach(() => {
+        calls = [];
+        global.CONFIG = { SUPABASE_URL: 'https://test.supabase.co', DB_TABLE: 'myapp' };
+        global.window = global.window || {};
+        global.window.supabaseClient = makeRecordingClient(calls);
+    });
+    afterEach(() => {
+        delete global.CONFIG;
+        delete global.window.supabaseClient;
+    });
+
+    test('no range applies no date filters', async () => {
+        await createApi('mylist').fetchItems();
+        expect(calls.filter(c => c[0] === 'gte' || c[0] === 'lte')).toEqual([]);
+    });
+
+    test('range filters on content_date by default', async () => {
+        await createApi('mylist').fetchItems({ dateFrom: '2026-07-01', dateTo: '2026-07-31' });
+        expect(calls).toContainEqual(['gte', 'content_date', '2026-07-01']);
+        expect(calls).toContainEqual(['lte', 'content_date', '2026-07-31']);
+    });
+
+    test('CONFIG.CONTENT_DATE_COLUMN overrides the column name', async () => {
+        global.CONFIG.CONTENT_DATE_COLUMN = 'slot_date';
+        await createApi('mylist').fetchItems({ dateFrom: '2026-07-01' });
+        expect(calls).toContainEqual(['gte', 'slot_date', '2026-07-01']);
+    });
+
+    test('setDateRange bounds a later arg-less fetch', async () => {
+        const api = createApi('mylist');
+        api.setDateRange('2026-07-01', '2026-07-31');
+        await api.fetchItems();
+        expect(calls).toContainEqual(['gte', 'content_date', '2026-07-01']);
+        expect(calls).toContainEqual(['lte', 'content_date', '2026-07-31']);
     });
 });
