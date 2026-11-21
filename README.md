@@ -61,7 +61,7 @@ Push to `main` deploys to GitHub Pages via `.github/workflows/deploy.yml`. The d
 1. Go to your repo → Settings → Pages
 2. Under **Source**, select **GitHub Actions**
 
-Or via CLI: `gh api repos/<owner>/<repo>/pages -X POST -f build_type=workflow`
+Or via CLI (bash or PowerShell): `gh api repos/<owner>/<repo>/pages -X POST -f build_type=workflow`
 
 ### Set up Actions variables
 
@@ -79,6 +79,37 @@ Or via CLI:
 gh variable set SUPABASE_URL --body "https://xyz.supabase.co"
 gh variable set SUPABASE_PUBLISHABLE_KEY --body "eyJ..."
 ```
+
+#### Copying them from another app on the same Supabase project
+
+Apps that share a Supabase project share these two values, so a new app can copy them from an
+existing one instead of looking them up. Fill in the two repos on the first line; the loop stops
+rather than set a blank value if it can't read one, then lists what the new repo has.
+
+bash:
+
+```bash
+from='<owner>/<existing-app>'; to='<owner>/<new-app>'
+for v in SUPABASE_URL SUPABASE_PUBLISHABLE_KEY; do
+  value=$(gh variable get "$v" -R "$from") && [ -n "$value" ] || { echo "Couldn't read $v from $from" >&2; break; }
+  gh variable set "$v" -R "$to" --body "$value"
+done
+gh variable list -R "$to"
+```
+
+PowerShell:
+
+```powershell
+$from = '<owner>/<existing-app>'; $to = '<owner>/<new-app>'
+foreach ($v in 'SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY') {
+  $value = gh variable get $v -R $from
+  if (-not $value) { Write-Error "Couldn't read $v from $from"; break }
+  gh variable set $v -R $to --body $value
+}
+gh variable list -R $to
+```
+
+If `gh` says `variable get` is an unknown command, update it (`winget upgrade GitHub.cli` on Windows).
 
 Your app will be live at `https://<username>.github.io/<repo-name>/`. You can also find the URL in the repo's Settings → Pages, or in the "Environments" section on the repo sidebar.
 
@@ -99,6 +130,29 @@ build — but check, in order:
 
 Verify the live file directly: open `https://<username>.github.io/<repo-name>/config.js` and confirm
 `SUPABASE_URL` is non-empty.
+
+## CLI Sign-in From Another Machine
+
+`scripts/google-login.js` signs a CLI in once: it serves Google sign-in at `http://localhost:3000`
+and writes `SUPABASE_REFRESH_TOKEN` to `.env`. It needs `http://localhost:3000/auth/callback` in the
+Supabase **Redirect URLs** (once per Supabase project). When the app's folder is on a machine you
+reach over SSH (a VM, a server), tunnel the port and sign in with your own browser:
+
+```bash
+ssh -t -L 3000:localhost:3000 <user>@<host> "cd <path-to-app> && node scripts/google-login.js"
+```
+
+The same line works in PowerShell. Then open http://localhost:3000 on your machine. Google's redirect
+to `localhost:3000/auth/callback` goes back through the tunnel, the script writes the token to the
+remote `.env` and exits, and the SSH session closes with it (`-t` lets Ctrl+C stop it early).
+
+- Port 3000 must be free on your machine: the redirect Supabase allows is on port 3000.
+- If the remote says `node: command not found`, Node is set up only for interactive shells (e.g. by
+  nvm in `.bashrc`); wrap the remote command in `bash -ic`:
+
+  ```bash
+  ssh -t -L 3000:localhost:3000 <user>@<host> "bash -ic 'cd <path-to-app> && node scripts/google-login.js'"
+  ```
 
 ## What's Replaceable
 
