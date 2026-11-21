@@ -131,29 +131,6 @@ build — but check, in order:
 Verify the live file directly: open `https://<username>.github.io/<repo-name>/config.js` and confirm
 `SUPABASE_URL` is non-empty.
 
-## CLI Sign-in From Another Machine
-
-`scripts/google-login.js` signs a CLI in once: it serves Google sign-in at `http://localhost:3000`
-and writes `SUPABASE_REFRESH_TOKEN` to `.env`. It needs `http://localhost:3000/auth/callback` in the
-Supabase **Redirect URLs** (once per Supabase project). When the app's folder is on a machine you
-reach over SSH (a VM, a server), tunnel the port and sign in with your own browser:
-
-```bash
-ssh -t -L 3000:localhost:3000 <user>@<host> "cd <path-to-app> && node scripts/google-login.js"
-```
-
-The same line works in PowerShell. Then open http://localhost:3000 on your machine. Google's redirect
-to `localhost:3000/auth/callback` goes back through the tunnel, the script writes the token to the
-remote `.env` and exits, and the SSH session closes with it (`-t` lets Ctrl+C stop it early).
-
-- Port 3000 must be free on your machine: the redirect Supabase allows is on port 3000.
-- If the remote says `node: command not found`, Node is set up only for interactive shells (e.g. by
-  nvm in `.bashrc`); wrap the remote command in `bash -ic`:
-
-  ```bash
-  ssh -t -L 3000:localhost:3000 <user>@<host> "bash -ic 'cd <path-to-app> && node scripts/google-login.js'"
-  ```
-
 ## What's Replaceable
 
 | File | Purpose | Replace? |
